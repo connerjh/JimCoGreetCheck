@@ -34,6 +34,21 @@ logger = logging.getLogger()
 # }
 
 
+def get_messages(individual):
+
+    messages = []
+
+    def sort_key(message):
+        return message['Priority']
+
+    for account in individual['Accounts']:
+        messages.append(account['Messages'])
+
+    messages = [m for x in messages for m in x]
+
+    return sorted(messages, key=sort_key, reverse=False)
+
+
 def lambda_handler(event, context):
 
     logger.info("event: {}".format(event))
@@ -44,4 +59,23 @@ def lambda_handler(event, context):
 
     logger.info('individual: {}'.format(individual))
 
-    return {"GreetingType": "Greeting", "Greeting": preferences['Greeting']}
+    messages = get_messages(individual)
+
+    logger.info('Messages: {}'.format(messages))
+
+    if len(messages) > 0:
+        return {
+            "GreetingType": "Greeting",
+            "Greeting": preferences['Greeting'],
+            'MessagePriority': messages[0]['Priority'],
+            "Message": messages[0]['AccountMessage']
+        }
+
+    else:
+        return {
+            "GreetingType": "Greeting",
+            "Greeting": preferences['Greeting'],
+            'MessagePriority': 'None',
+            "Message":  ''
+        }
+
