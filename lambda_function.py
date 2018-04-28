@@ -40,5 +40,8 @@ def lambda_handler(event, context):
     logger.info("context: {}".format(context))
 
     preferences = jimcodb.get_greet_check_preferences(event['Details']['ContactData']['CustomerEndpoint']['Address'])
+    individual = jimcodb.get_individual_by_id(preferences['IndividualId'])
+
+    logger.info('individual: {}'.format(individual))
 
     return {"GreetingType": "Greeting", "Greeting": preferences['Greeting']}
