@@ -41,4 +41,4 @@ def lambda_handler(event, context):
 
     preferences = jimcodb.get_greet_check_preferences(event['Details']['ContactData']['CustomerEndpoint']['Address'])
 
-    return {"Preferences": preferences}
+    return {"Greeting": preferences['Greeting']}
