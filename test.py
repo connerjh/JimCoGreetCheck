@@ -8,7 +8,7 @@ event1 = {
             "Channel": "VOICE",
             "ContactId": "4a573372-1f28-4e26-b97b-XXXXXXXXXXX",
             "CustomerEndpoint": {
-                "Address": "+1234567890",
+                "Address": "+12108548842",
                 "Type": "TELEPHONE_NUMBER"
             },
             "InitialContactId": "4a573372-1f28-4e26-b97b-XXXXXXXXXXX",

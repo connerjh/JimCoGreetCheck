@@ -30,35 +30,6 @@ def get_connection():
 
     logger.info("SUCCESS: Connection to RDS mysql instance succeeded")
 
-# ------------------------------------------------------------------------------
-
-
-def set_account_value(account):
-
-    try:
-
-        connection = get_connection()
-
-        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
-            cursor.execute(
-                "UPDATE jimcodb.Accounts as a SET a.AccountValue = %s where a.AccountId = %s;",
-                (
-                    account['AccountValue'],
-                    account['AccountId']
-                )
-            )
-
-        logger.info('Account {} updated with value {}'.format(account['AccountId'], account['AccountValue']))
-
-        connection.commit()
-
-        return account
-
-    except Exception as e:
-
-        logger.error('JimCoAccountQuery Error: ' + str(e))
-        return None
-
 
 # -----------------------------------------------------------------------------
 
@@ -79,6 +50,102 @@ def get_account(account_number):
 
         logger.error('JimCoAccountQuery Error: ' + str(e))
         return None
+
+
+# -----------------------------------------------------------------------------
+
+
+def get_individual_by_user(username):
+
+    try:
+
+        connection = get_connection()
+
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT * from jimcodb.Individuals where UserName = %s;", (username,))
+            user = cursor.fetchone()
+
+            cursor.execute("SELECT * from jimcodb.IndividualCommunication where UserId = %s;", (user['IndividualId'],))
+            user['Communication'] = cursor.fetchall()
+
+            cursor.execute("SELECT * from jimcodb.Accounts where IndividualId = %s;", (user['IndividualId'],))
+            accounts_temp = cursor.fetchall()
+            accounts = []
+
+            for account in accounts_temp:
+                cursor.execute("SELECT AccountMessageId, AccountId, AccountMessage, Priority FROM jimcodb.AccountMessages where AccountId = %s and EffectiveFrom <= Now() and EffectiveTo >= Now() order by Priority asc;", (account['AccountId'],))
+                account['Messages'] = cursor.fetchall()
+                accounts.append(account)
+
+            user['Accounts'] = accounts
+
+            logger.info('returned user: {}'.format(json.dumps(user)))
+
+            return user
+
+    except Exception as e:
+
+        logger.error('JimCoAccountQuery Error: ' + str(e))
+        return None
+
+# -----------------------------------------------------------------------------
+
+
+def get_individual_by_id(id):
+
+    try:
+
+        connection = get_connection()
+
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT * from jimcodb.Individuals where IndividualId = %s;", (id,))
+            user = cursor.fetchone()
+
+            cursor.execute("SELECT * from jimcodb.IndividualCommunication where UserId = %s;", (user['IndividualId'],))
+            user['Communication'] = cursor.fetchall()
+
+            cursor.execute("SELECT * from jimcodb.Accounts where IndividualId = %s;", (user['IndividualId'],))
+            accounts_temp = cursor.fetchall()
+            accounts = []
+
+            for account in accounts_temp:
+                cursor.execute("SELECT AccountMessageId, AccountId, AccountMessage, Priority FROM jimcodb.AccountMessages where AccountId = %s and EffectiveFrom <= Now() and EffectiveTo >= Now() order by Priority asc;", (account['AccountId'],))
+                account['Messages'] = cursor.fetchall()
+                accounts.append(account)
+
+            user['Accounts'] = accounts
+
+            logger.info('returned user: {}'.format(json.dumps(user)))
+
+            return user
+
+    except Exception as e:
+
+        logger.error('JimCoAccountQuery Error: ' + str(e))
+        return None
+
+# -----------------------------------------------------------------------------
+
+
+def get_greet_check_preferences(phoneNumber):
+
+    try:
+
+        connection = get_connection()
+
+        with connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            cursor.execute("SELECT * FROM jimcodb.GreetCheckPreferences where PhoneNumber = %s;", (phoneNumber,))
+            preferences = cursor.fetchone()
+
+            logger.info('GreetCheckPreferences: {}'.format(preferences))
+
+            return preferences
+
+    except Exception as e:
+
+        logger.error('GreetCheckPreferences error: {} for phone number {}'.format(e, phoneNumber))
+
+        return {}
 
 # -----------------------------------------------------------------------------
 
